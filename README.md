@@ -67,6 +67,8 @@ No entanto, há algumas considerações a serem levadas em conta:
 
 ### 3) Código
 
+Esse código-fonte lê 3 sinais dBm e calcula a distância Eucludiana, que é a distância em linha reta. O cálculo da distância é a alma desse código e por isso, não existe uma única solução.
+
 ```
 # Algoritmo de Triangulação WiFi para ESP32
 
@@ -169,3 +171,106 @@ void loop() {
   calcularLocalizacao(pontosAcesso, numeroPontosAcesso);
 }
 ```
+
+
+Esse código abaixo possui um algoritmo de cálculo de distância. Ele precisa de ajustes caso você o utilize:
+
+```
+#include <WiFi.h>
+
+// Estrutura para armazenar informações de ponto de acesso
+struct AccessPoint {
+  String ssid;
+  String bssid;
+  int rssi;
+  float latitude;
+  float longitude;
+};
+
+// Função para calcular a distância com base no RSSI
+float calculateDistance(int rssi) {
+  // Modelo de perda de percurso (path loss model)
+  // Esta fórmula é um exemplo e pode precisar de ajustes com base no ambiente específico
+  // Experimente calibrar a fórmula com medições reais em seu ambiente
+  float A = -50; // Parâmetro de atenuação, dependendo do ambiente
+  float n = 2.0; // Expoente do caminho, dependendo do ambiente
+
+  return pow(10, (A - rssi) / (10 * n));
+}
+
+// Função para calcular a posição com base na triangulação
+void triangulate(AccessPoint ap1, AccessPoint ap2, AccessPoint ap3, float &latitude, float &longitude) {
+  // Fórmula da triangulação
+  // x, y representam as coordenadas do ponto a ser localizado
+  // r1, r2, r3 representam as distâncias do ponto aos pontos de acesso
+  float x, y;
+  float A1 = 2 * (ap2.latitude - ap1.latitude);
+  float B1 = 2 * (ap2.longitude - ap1.longitude);
+  float C1 = pow(ap2.latitude, 2) - pow(ap1.latitude, 2) + pow(ap2.longitude, 2) - pow(ap1.longitude, 2) + pow(ap1.rssi, 2) - pow(ap2.rssi, 2);
+
+  float A2 = 2 * (ap3.latitude - ap1.latitude);
+  float B2 = 2 * (ap3.longitude - ap1.longitude);
+  float C2 = pow(ap3.latitude, 2) - pow(ap1.latitude, 2) + pow(ap3.longitude, 2) - pow(ap1.longitude, 2) + pow(ap1.rssi, 2) - pow(ap3.rssi, 2);
+
+  // Solução para x, y
+  x = (C1 * B2 - C2 * B1) / (A1 * B2 - A2 * B1);
+  y = (C1 * A2 - C2 * A1) / (B1 * A2 - B2 * A1);
+
+  latitude = x;
+  longitude = y;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Conectar ao WiFi
+  WiFi.begin("SSID", "PASSWORD");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Conectando ao WiFi...");
+  }
+
+  Serial.println("Conectado ao WiFi");
+}
+
+void loop() {
+  // Escanear redes WiFi
+  int numNetworks = WiFi.scanNetworks();
+
+  if (numNetworks >= 3) { // Pelo menos três pontos de acesso são necessários para triangulação
+    // Coletar informações dos três primeiros pontos de acesso
+    AccessPoint ap1 = {"SSID1", WiFi.BSSIDstr(0), WiFi.RSSI(0), LATITUDE1, LONGITUDE1};
+    AccessPoint ap2 = {"SSID2", WiFi.BSSIDstr(1), WiFi.RSSI(1), LATITUDE2, LONGITUDE2};
+    AccessPoint ap3 = {"SSID3", WiFi.BSSIDstr(2), WiFi.RSSI(2), LATITUDE3, LONGITUDE3};
+
+    // Calcular distâncias
+    float distance1 = calculateDistance(ap1.rssi);
+    float distance2 = calculateDistance(ap2.rssi);
+    float distance3 = calculateDistance(ap3.rssi);
+
+    // Calcular posição
+    float latitude, longitude;
+    triangulate(ap1, ap2, ap3, latitude, longitude);
+
+    Serial.print("Latitude: ");
+    Serial.println(latitude, 6);
+    Serial.print("Longitude: ");
+    Serial.println(longitude, 6);
+  }
+
+  delay(5000); // Aguardar antes de realizar o próximo escaneamento
+}
+
+```
+
+### 4) Conclusões
+
+1) Para o M4, não é trivial adotar soluções por medições de dBm para refinar a geolocalização onde a situação envolve limites de zonas;
+   
+2) No lugar do dBm, tente usar sensores de porta, de presença, de pressão, de movimentos, etc e crie um algoritmo para integrar a identificação de quem entrou ou saiu do ambiente;
+
+3) O acréscimo de um módulo de GPS também não garante precisão **indoor** na sua geolocalização, pois o sinal do satélite não pode ter barreiras como telhados e coberturas. Em projetos do tipo **outdoor**, ok, compensa utilizá-lo.
+
+
+
