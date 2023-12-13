@@ -286,6 +286,8 @@ void loop() {
 
 ## Kahoot Geral
 
+Os 07 primeiros alunos terão a chance de ganhar um sonho de valsa.
+
 
 <picture>
    <source media="(prefers-color-scheme: light)" srcset="https://github.com/agodoi/m04-semana09/blob/main/imgs/bombom.jpg">
