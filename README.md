@@ -272,5 +272,16 @@ void loop() {
 
 3) O acréscimo de um módulo de GPS também não garante precisão **indoor** na sua geolocalização, pois o sinal do satélite não pode ter barreiras como telhados e coberturas. Em projetos do tipo **outdoor**, ok, compensa utilizá-lo.
 
+### Outras Correções
 
+#### 1) Arquitetura da Solução
 
+#### 2) Manual do Projeto
+
+#### 3) Diagrama UML
+
+#### 4) Profundidade de Conceitos
+
+#### 5) Padrão ABNT
+
+## Kahoot Geral
