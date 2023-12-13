@@ -288,6 +288,6 @@ void loop() {
 
 
 <picture>
-   <source media="(prefers-color-scheme: light)" srcset="https://github.com/agodoi/m04-semana08/blob/main/imgs/bombom.jpg">
-   <img alt="Bombom" src="(https://github.com/agodoi/m04-semana08/blob/main/imgs/bombom.jpg)" width="700px">
+   <source media="(prefers-color-scheme: light)" srcset="https://github.com/agodoi/m04-semana09/blob/main/imgs/bombom.jpg">
+   <img alt="Bombom" src="(https://github.com/agodoi/m04-semana09/blob/main/imgs/bombom.jpg)" width="700px">
 </picture>
